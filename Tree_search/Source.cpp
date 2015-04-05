@@ -12,11 +12,13 @@ using namespace std;
 
 class BFSQueue;
 class UCSQueue;
+class LinkedList;
 
 class Node
 {
 	friend class BFSQueue;
 	friend class UCSQueue;
+	friend class LinkedList;
 public:
 	Node()
 	{
@@ -56,8 +58,6 @@ private:
 	Node * parent;
 	Node * next;
 };
-
-
 
 class BFSQueue
 {
@@ -190,6 +190,68 @@ public:
 
 private:
 	Node * start;
+
+};
+
+
+
+class LinkedList
+{
+public:
+	LinkedList()
+	{
+		start = NULL;
+		last = NULL;
+	}
+
+	bool isEmpty()
+	{
+		if (start == NULL)
+			return true;
+		return false;
+	}
+
+	Node * getLast()
+	{
+		return last;
+	}
+
+	Node * getStart()
+	{
+		return start;
+	}
+
+
+	Node * addToEnd(Node val)
+	{
+		if (isEmpty())
+		{
+			Node * temp = start;
+			start = new Node;
+			start->next = temp;
+			start->depth = val.depth;
+			start->g = val.g;
+			start->parent = val.parent;
+			start->state = val.state;
+
+			last = start;
+			return last;
+		}
+		last->next = new Node;
+		last = last->next;
+		last->depth = val.depth;
+		last->g = val.g;
+		last->parent = val.parent;
+		last->state = val.state;
+		last->next = NULL;
+		return last;
+
+	}
+
+
+private:
+	Node * start;
+	Node * last;
 
 };
 
