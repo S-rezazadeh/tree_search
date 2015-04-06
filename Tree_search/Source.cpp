@@ -1,5 +1,5 @@
 /*
-This is simple version of application. Many of OOP concpts , exceptions ,  copy constructors , abstraction , List Nodes are removed :)
+This is simple version of application. Many of OOP concpts , exceptions ,  copy constructors , abstraction , List Nodes , inline functions , multi goals in tree are removed :)
 */
 
 
@@ -24,6 +24,22 @@ public:
 	{
 
 	}
+	Node(int _id ,char _state, int _depth, int _cost, Node * _parent)
+	{
+		id = _id;
+		state = _state;
+		depth = _depth;
+		g = _cost;
+		parent = _parent;
+	}
+	int getId()
+	{
+		return id;
+	}
+	char getState()
+	{
+		return state;
+	}
 	int getDepth()
 	{
 		return depth;
@@ -32,11 +48,19 @@ public:
 	{
 		return g;
 	}
+	Node * getParent()
+	{
+		return parent;
+	}
 	Node * getNext()
 	{
 		return next;
 	}
 
+	void setId(int val)
+	{
+		id = val;
+	}
 	void setDepth(int val)
 	{
 		depth = val;
@@ -52,6 +76,7 @@ public:
 
 
 private:
+	int id;
 	char state;
 	int depth;
 	int g;
@@ -99,6 +124,7 @@ public:
 			start->g = val.g;
 			start->parent = val.parent;
 			start->state = val.state;
+			start->id = val.getId();
 		}
 		else
 		{
@@ -115,6 +141,7 @@ public:
 			p->g = val.g;
 			p->parent = val.parent;
 			p->state = val.state;
+			p->id = val.id;
 
 		}
 	}
@@ -167,6 +194,7 @@ public:
 			start->g = val.g;
 			start->parent = val.parent;
 			start->state = val.state;
+			start->id = val.id;
 		}
 		else
 		{
@@ -183,6 +211,7 @@ public:
 			p->g = val.g;
 			p->parent = val.parent;
 			p->state = val.state;
+			p->id = val.getId();
 
 		}
 	}
@@ -259,15 +288,121 @@ private:
 class Tree
 {
 public:
-	Tree()
+	Tree(int ** g, char * _states , int n , int initState, int _goal)
 	{
+		matrix = new int *[n];
+		states = new char[n];
+		for (int i = 0; i < n; i++)
+		{
+			states[i] = _states[i];
+			matrix[i] = new int[n];
+			for (int j = 0; j < n; j++)
+			{
+				matrix[i][j] = g[i][j];
+			}//for j
+		}
+
+
+
+
+		for (int i = 0; i < n; i++)
+		{
+			for (int j = 0; j < n; j++)
+			{
+				cout << g[i][j] << "  ";
+			}
+			cout << endl;
+		}
+
+
+		root = makeNode(initState,states[initState], 0, 0, NULL);
+		goal = _goal;
+		len = n;
+
+	}
+	Node getRoot()
+	{
+		return root;
+	}
+
+	int ** getMatrix()
+	{
+		return matrix;
+	}
+
+	LinkedList getExpandList()
+	{
+		return expandList;
+	}
+
+
+
+	bool isGoal(Node node)
+	{
+		if(node.getId() == goal)
+			return true;
+		return false;
+	}
+
+	bool BFS()
+	{
+		bfsFringe = BFSQueue();
+		expandList = LinkedList();
+
+		bfsFringe.insert(root);
+
+		Node temp;
+		while (!bfsFringe.isEmpty())
+		{
+			temp = bfsFringe.remove();
+			if (isGoal(temp))
+			{
+				expandList.addToEnd(temp);
+
+				return true;
+			}
+			bfsExpand(temp);
+		}
+		return false;
 
 	}
 
-private:
-	Node * root;
-};
+	void bfsExpand(Node node)
+	{
+		//cout << "Expanded " << node.getState()<<"["<<node.getId()<<"]" << "\n";
+		Node * prnt = expandList.addToEnd(node);
+		Node temp;
+		int cost;
+		for (int i = 0; i<len; i++)
+		{
+			cost = matrix[node.getId()][i];
+			//cout << "cost " << node.getState() << " -> " << states[i]<<"["<<i<<"]" << " = " << cost << endl;
+			if (cost != 0)
+			{
+				temp = makeNode(i, states[i], cost + node.getG(), node.getDepth() + 1, prnt);
+				bfsFringe.insert(temp);
+			}//if != 0
+		}//for i
+	}
 
+
+private:
+	Node root;
+	int ** matrix;
+	char * states;
+	int len;
+	BFSQueue bfsFringe;
+	UCSQueue ucsFringe;
+	LinkedList expandList;
+	int goal;
+	Node makeNode(int id , char state, int cost, int depth, Node * parent)
+	{
+		Node result(id , state, depth, cost, parent);
+		return result;
+	}
+
+
+};
 
 int** getData(int &count)
 {
@@ -304,16 +439,49 @@ int main()
 	int count;
 	int **graph = getData(count);
 
+	char * states = new char[count];
+	char a = 'a';
+
 	for (int i = 0; i < count; i++)
 	{
-		for (int j = 0; j < count; j++)
-		{
-			cout << graph[i][j] << "\t";
-		}
-		cout << endl;
+		cout << "Enter a char for state [" << i << "]: ";
+		//cin >> states[i];
+		states[i] = a++;
+		cout << states[i] << endl;
+	}
+	int init;
+	cout << "Enter Init state number: ";
+	cin >> init;
+
+	int goal;
+	cout << "Enter goal state number: ";
+	cin >> goal;
+
+	Tree t(graph, states, count, init, goal);
+	t.BFS();
+
+	Node * exp = t.getExpandList().getStart();
+	cout << "BFS Expand List:\n";
+	
+	while (exp != NULL)
+	{
+		cout << exp->getState();
+		exp = exp->getNext();
+		cout << " -> ";
+	}
+
+	cout << "\nBFS Solution List:\n";
+	exp = t.getExpandList().getLast();
+	while (exp != NULL)
+	{
+		cout << exp->getState();
+		exp = exp->getParent();
+		cout << " <- ";
 	}
 
 
+
+	cin.ignore();
 	cin.get();
 	return 0;
 }
